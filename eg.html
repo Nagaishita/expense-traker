@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elegant Expense Tracker</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(to right, #e3f2fd, #ffffff);
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .tracker-card {
+      max-width: 900px;
+      margin: auto;
+      margin-top: 40px;
+      margin-bottom: 60px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      padding: 30px 40px;
+    }
+
+    h1.title {
+      font-weight: 800;
+      font-size: 2.5rem;
+      color: #0d6efd;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #6c757d;
+      margin-bottom: 30px;
+    }
+
+    .btn-primary {
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+
+    .table-container {
+      max-width: 1000px;
+      margin: auto;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+      padding: 20px;
+    }
+
+    .table th {
+      background-color: #0d6efd;
+      color: white;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-category {
+      background-color: #e3f2fd;
+      color: #0d47a1;
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 0.8rem;
+    }
+
+    .btn-warning, .btn-danger {
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="tracker-card">
+    <h1 class="title">Expense Tracker</h1>
+    <p class="subtitle">Track your daily spending efficiently and in style</p>
+
+    <form id="expenseForm">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label for="expenseName" class="form-label">Expense Name</label>
+          <input type="text" id="expenseName" class="form-control" placeholder="e.g., Grocery" required />
+        </div>
+        <div class="col-md-3">
+          <label for="expenseAmount" class="form-label">Amount (₹)</label>
+          <input type="number" id="expenseAmount" class="form-control" placeholder="e.g., 500" required />
+        </div>
+        <div class="col-md-3">
+          <label for="expenseCategory" class="form-label">Category</label>
+          <input type="text" id="expenseCategory" class="form-control" placeholder="e.g., Food" required />
+        </div>
+        <div class="col-md-2 d-grid">
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-container">
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle text-center">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Expense</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="expenseList" class="text-capitalize"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    let expenses = [];
+    let editIndex = null;
+
+    const expenseForm = document.getElementById("expenseForm");
+    const expenseList = document.getElementById("expenseList");
+
+    window.onload = function () {
+      const storedExpenses = localStorage.getItem("expenses");
+      if (storedExpenses) {
+        expenses = JSON.parse(storedExpenses);
+        renderExpenses();
+      }
+    };
+
+    expenseForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("expenseName").value.trim();
+      const amount = document.getElementById("expenseAmount").value.trim();
+      const category = document.getElementById("expenseCategory").value.trim();
+
+      if (!name || !amount || !category) return;
+
+      if (editIndex === null) {
+        expenses.push({ name, amount, category });
+      } else {
+        expenses[editIndex] = { name, amount, category };
+        editIndex = null;
+      }
+
+      localStorage.setItem("expenses", JSON.stringify(expenses));
+      expenseForm.reset();
+      renderExpenses();
+    });
+
+    function renderExpenses() {
+      expenseList.innerHTML = "";
+      expenses.forEach((exp, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${exp.name}</td>
+          <td>₹${exp.amount}</td>
+          <td><span class="badge badge-category">${exp.category}</span></td>
+          <td>
+            <button class="btn btn-warning btn-sm me-2" onclick="editExpense(${index})">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteExpense(${index})">Delete</button>
+          </td>
+        `;
+        expenseList.appendChild(row);
+      });
+    }
+
+    function editExpense(index) {
+      const exp = expenses[index];
+      document.getElementById("expenseName").value = exp.name;
+      document.getElementById("expenseAmount").value = exp.amount;
+      document.getElementById("expenseCategory").value = exp.category;
+      editIndex = index;
+    }
+
+    function deleteExpense(index) {
+      expenses.splice(index, 1);
+      localStorage.setItem("expenses", JSON.stringify(expenses));
+      renderExpenses();
+    }
+  </script>
+</body>
+</html>
